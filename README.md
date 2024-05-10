@@ -1,4 +1,20 @@
 # Wallets Service
+### EDIT Luca Rospocher
+Hi, here's the POC wallet service I've implemented. I have tried to fulfill the requirements and
+write what I deemed most necessary (basic structure, simple sql migrations, DTO, basic exception handling
+and so on). Of course it is not possible to write a real production ready application so these are the things I either left
+out or simplified:
+- Documentation (just wrote basic Java doc and some comments)
+- Security (endpoints are all accessible and there are no users with registrations and logins)
+- No real setup for deployments (Docker, CI files, maven build configs)
+- Money management, kept everything in BigDecimal, without Money specific classes or currency handling
+- Caching, the database is reached all the times, while wallet entity may be cached and evicted when necessary
+
+Also the potential high-concurrency was mainly handled with sql transactions and pessimistic locking.
+In my opinion that covers a lot of cases already, but optimisations can be made if we know what the issues might be
+(could use optimistic locking or different strategies).
+
+
 In Playtomic, we have a service to manage our wallets. Our players can top-up their wallets using a credit card and spend that money on our platform (bookings, racket rentals, ...)
 
 That service has the following operations:
@@ -11,11 +27,11 @@ That service has the following operations:
 This exercise consists of building a proof of concept of that wallet service.
 You have to code endpoints for these operations:
 1. Get a wallet using its identifier.
-1. Top-up money in that wallet using a credit card number. It has to charge that amount internally using a third-party platform.
+2. Top-up money in that wallet using a credit card number. It has to charge that amount internally using a third-party platform.
 
 You don't have to write the following operations, but we will discuss possible solutions during the interview:
 1. How to spend money from the wallet.
-1. How to refund that money.
+2. How to refund that money.
 
 The basic structure of a wallet is its identifier and its current balance. If you think you need extra fields, add them. We will discuss it in the interview. 
 

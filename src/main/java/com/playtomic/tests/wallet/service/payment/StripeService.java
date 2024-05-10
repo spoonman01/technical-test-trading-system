@@ -1,10 +1,10 @@
-package com.playtomic.tests.wallet.service;
+package com.playtomic.tests.wallet.service.payment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.playtomic.tests.wallet.model.Payment;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,13 +32,10 @@ public class StripeService {
 
     public StripeService(@Value("${stripe.simulator.charges-uri}") @NonNull URI chargesUri,
                          @Value("${stripe.simulator.refunds-uri}") @NonNull URI refundsUri,
-                         @NonNull RestTemplateBuilder restTemplateBuilder) {
+                         @NonNull RestTemplate restTemplate) {
         this.chargesUri = chargesUri;
         this.refundsUri = refundsUri;
-        this.restTemplate =
-                restTemplateBuilder
-                .errorHandler(new StripeRestTemplateResponseErrorHandler())
-                .build();
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -65,7 +62,7 @@ public class StripeService {
     }
 
     @AllArgsConstructor
-    private static class ChargeRequest {
+    public static class ChargeRequest {
 
         @NonNull
         @JsonProperty("credit_card")
