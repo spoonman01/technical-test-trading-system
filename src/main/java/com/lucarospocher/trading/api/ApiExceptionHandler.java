@@ -1,13 +1,12 @@
-package com.playtomic.tests.wallet.api;
+package com.lucarospocher.trading.api;
 
-import com.playtomic.tests.wallet.service.payment.StripeAmountTooSmallException;
-import com.playtomic.tests.wallet.service.payment.StripeServiceException;
-import com.playtomic.tests.wallet.service.wallet.WalletNotFoundException;
+import com.lucarospocher.trading.service.SymbolNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,6 +29,13 @@ public class ApiExceptionHandler {
         return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        log.warn("Body missing or invalid", exception);
+        var errorResponse = new ErrorResponse(exception.getMessage());
+        return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDatabaseException(DataAccessException exception) {
         log.error("Database exception", exception);
@@ -37,24 +43,10 @@ public class ApiExceptionHandler {
         return new ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(WalletNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleWalletNotFoundException(WalletNotFoundException exception) {
-        log.warn("Cannot find wallet with id = {}", exception.getWalletId());
-        var errorResponse = new ErrorResponse("Wallet not found");
+    @ExceptionHandler(SymbolNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSymbolNotFoundException(SymbolNotFoundException exception) {
+        log.warn("Cannot find trades with symbol = {}", exception.getSymbol());
+        var errorResponse = new ErrorResponse("Symbol not found");
         return new ResponseEntity(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(StripeAmountTooSmallException.class)
-    public ResponseEntity<ErrorResponse> handleStripeAmountTooSmallException(StripeAmountTooSmallException exception) {
-        log.warn("Stripe amount too small exception", exception);
-        var errorResponse = new ErrorResponse("Amount too small");
-        return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(StripeServiceException.class)
-    public ResponseEntity<ErrorResponse> handleStripeServiceException(StripeServiceException exception) {
-        log.warn("Stripe amount too small exception", exception);
-        var errorResponse = new ErrorResponse("Error occurred while processing payment");
-        return new ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

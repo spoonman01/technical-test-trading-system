@@ -3,12 +3,12 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.playtomic.tests</groupId>
-	<artifactId>exercise-wallet</artifactId>
-	<version>0.0.2</version>
+	<groupId>com.lucarospocher.trading</groupId>
+	<artifactId>exercise-trading</artifactId>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>Wallet Service Exercise</name>
+	<name>Trading Exercise</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -23,16 +23,10 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
 
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-rest</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
 		<dependency>
@@ -53,16 +47,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-core</artifactId>
 		</dependency>
 
 		<dependency>

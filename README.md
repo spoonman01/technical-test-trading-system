@@ -1,49 +1,53 @@
-# Wallets Service
-### EDIT Luca Rospocher
-Hi, here's the POC wallet service I've implemented. I have tried to fulfill the requirements and
-write what I deemed most necessary (basic structure, simple sql migrations, DTO, basic exception handling
+# Trading Service
+Hi, here's the POC trading system service I've implemented. I have tried to fulfill the requirements and
+write what I deemed most necessary (basic structure, simple api level with serialization and validation, DTO, basic exception handling
 and so on). Of course it is not possible to write a real production ready application so these are the things I either left
 out or simplified:
 - Documentation (just wrote basic Java doc and some comments)
 - Security (endpoints are all accessible and there are no users with registrations and logins)
 - No real setup for deployments (Docker, CI files, maven build configs)
-- Money management, kept everything in BigDecimal, without Money specific classes or currency handling
-- Caching, the database is reached all the times, while wallet entity may be cached and evicted when necessary
+- Money management, kept everything in Float, without Money specific classes or currency handling
+- Caching, the database is reached all the times, while some things could be cached (like last element for any given symbol)
 
-Also the potential high-concurrency was mainly handled with sql transactions and pessimistic locking.
-In my opinion that covers a lot of cases already, but optimisations can be made if we know what the issues might be
-(could use optimistic locking or different strategies).
+Also the potential high-concurrency was mainly handled by the database itself (kdb).
 
+### How to run
+Needed:
+* Java 17
+* Maven
 
-In Playtomic, we have a service to manage our wallets. Our players can top-up their wallets using a credit card and spend that money on our platform (bookings, racket rentals, ...)
+A running instance of the database KDB is should be running on port 7001 before starting the application.
+Generally for databases running locally a Docker setup is easier, but KDB does not provide a default image
+because a personal LICENCE is needed. This complicates the local setup because each dev would need to download
+and add the licence.
 
-That service has the following operations:
-- You can query your balance.
-- You can top-up your wallet. In this case, we charge the amount using a third-party payments platform (stripe, paypal, redsys).
-- You can spend your balance on purchases in Playtomic. 
-- You can return these purchases, and your money is refunded.
-- You can check your history of transactions.
+#### Run
+```
+mvn install:install-file -Dfile=lib/jdbc.jar -DgroupId=com.lucarospocher -DartifactId=jdbc-kdb -Dversion=1 -Dpackaging=jar
+mvn compile
+mvn spring-boot:run
+```
+### Design
+Given the requisites, my main focus was on chosing the datasource.
+It is impossible to know the best datasource, it depends if this system would be more READ or WRITE heavy.
 
-This exercise consists of building a proof of concept of that wallet service.
-You have to code endpoints for these operations:
-1. Get a wallet using its identifier.
-2. Top-up money in that wallet using a credit card number. It has to charge that amount internally using a third-party platform.
+* A relational database would be easy to setup and very flexible to changes
+but lacks on real time aggregation performed on-demand (also no relationships needed)
 
-You don't have to write the following operations, but we will discuss possible solutions during the interview:
-1. How to spend money from the wallet.
-2. How to refund that money.
+* Something like MongoDB would be the clear choice because of simplicity and great performances for
+this kind of tasks (simple inserts and aggregations).
 
-The basic structure of a wallet is its identifier and its current balance. If you think you need extra fields, add them. We will discuss it in the interview. 
+* However I wanted to push for performance and testout some in-memory databases specialised in
+trading/financial data where performance is critical. I've chosen KDB, integrated through Spring
+JDBCTemplate, but with manually written queries (in Q) to get max performance.
 
-So you can focus on these problems, you have here a maven project with a Spring Boot application. It already contains
-the basic dependencies and an H2 database. There are development and test profiles.
+#### Result
+KDB has great performance at least for simple tests that I've made locally,
+but the support for Java is really limited, the JDBC driver is present but buggy
+so I had to write queries manually mostly (no type-checking, potential "sql" injection) and so on.
 
-You can also find an implementation of the service that would call to the real payments platform (StripePaymentService).
-This implementation is calling to a simulator deployed in one of our environments. Take into account
-that this simulator will return 422 http error codes under certain conditions.
+On the other side inserting a batch of data or getting all the stats, **took around 5-10ms (on my machine)**
 
-Consider that this service must work in a microservices environment in high availability. You should care about concurrency too.
+### Possible Improvements
 
-You can spend as much time as you need but we think that 4 hours is enough to show [the requirements of this job.](OFFER.md)
-You don't have to document your code, but you can write down anything you want to explain or anything you have skipped.
-You don't need to write tests for everything, but we would like to see different types of tests.
+* If insert volume is estimates to be to big, creating events on some queue/ledger (e.g. Kafka), would be more safe in cases of burst of inserts
